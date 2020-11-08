@@ -3,17 +3,19 @@ package com.company;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 
 public class Main {
     public static Socket ss;
     public static BufferedReader br;
     public static PrintWriter bw;
 
+
     public static void main(String[] args) throws IOException, IOException {
 
-        int PORTA = 2000;  // porta di ascolto
+        int porta = 2000;  // porta di ascolto
         ServerSocket S;
-        S = new ServerSocket(PORTA);
+        S = new ServerSocket(porta);
 
         while (true) {
             ss = S.accept();
@@ -22,12 +24,12 @@ public class Main {
             readRequest();
             ss.close();
         }
-
     }
 
 
     public static void readRequest() throws IOException {
         String riga[] = br.readLine().split(" ");
+        while (!(br.readLine()).equals("")) ;
         if (riga.length == 3) {
             switch (riga[0]) {
                 case "GET":
@@ -41,17 +43,37 @@ public class Main {
     }
 
     public static void get(String directory) throws IOException {
+        System.out.println(directory);
         if (directory.equals("/"))
             directory = "/index.html";
         directory = "www" + directory;
-        if (new File(directory).exists())
-            sendpage(directory);
-        else {
+        System.out.println(directory);
+        if (new File(directory).exists()) {
+            //System.out.println(directory);
+            if (directory.split("\\.")[1].equals("html"))
+                sendpage(directory);
+            else
+                sendObj(directory);
+
+        } else {
             fileNotFoundError();
         }
 
+
     }
 
+    public static void sendObj(String directory) throws IOException {
+        byte [] data = Files.readAllBytes(new File(directory).toPath());
+
+        bw.println("HTTP/1.1 200 OK");
+        bw.println("Content length: " + data.length);
+        bw.println("Content Type: image/"+directory.split("\\.")[1]);
+        bw.println();
+
+        OutputStream os = ss.getOutputStream();
+        os.write(data);
+
+    }
 
     public static void sendpage(String directory) throws IOException {
         String content = "";
