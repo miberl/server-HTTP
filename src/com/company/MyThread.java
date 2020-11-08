@@ -33,7 +33,9 @@ public class MyThread implements Runnable {
 
     public static void readRequest() throws IOException {
         String riga[] = br.readLine().split(" ");
+        //Legge tutta la richiesta
         while (!(br.readLine()).equals("")) ;
+
         if (riga.length == 3) {
             switch (riga[0]) {
                 case "GET":
@@ -68,10 +70,11 @@ public class MyThread implements Runnable {
 
     public static void sendObj(String directory) throws IOException {
         byte[] data = Files.readAllBytes(new File(directory).toPath());
-
         bw.println("HTTP/1.1 200 OK");
-        bw.println("Content length: 0");// + data.length);
+        bw.println("Content length: 0" + data.length);
         bw.println("Content Type: image/" + directory.split("\\.")[1]);
+        bw.println("Keep-Alive: timeout=5, max=100");
+        bw.println("Connection: Keep-Alive");
         bw.println();
 
         OutputStream os = ss.getOutputStream();
@@ -89,6 +92,8 @@ public class MyThread implements Runnable {
         bw.println("HTTP/1.1 200 OK");
         bw.println("Content length: " + content.getBytes().length);
         bw.println("Content Type: text/html");
+        bw.println("Keep-Alive: timeout=5, max=100");
+        bw.println("Connection: Keep-Alive");
         bw.println();
         bw.println(content);
     }
@@ -103,6 +108,8 @@ public class MyThread implements Runnable {
         bw.println("HTTP/1.1 404 Not Found");
         bw.println("Content length: " + content.getBytes().length);
         bw.println("Content Type: text/html");
+        bw.println("Keep-Alive: timeout=5, max=100");
+        bw.println("Connection: Keep-Alive");
         bw.println();
         bw.println(content);
     }

@@ -14,11 +14,9 @@ public class Server {
     }
     public static void main(String[] args) throws IOException {
         Initiate();
-        int i = 0;
         while (true){
             Socket ss = S.accept();
             new Thread(new MyThread(ss)).start();
-            System.out.println("j");
         }
 
 
