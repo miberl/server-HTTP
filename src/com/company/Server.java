@@ -18,8 +18,6 @@ public class Server {
             Socket ss = S.accept();
             new Thread(new MyThread(ss)).start();
         }
-
-
     }
 
 }

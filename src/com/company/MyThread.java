@@ -10,7 +10,7 @@ public class MyThread implements Runnable {
     public static BufferedReader br;
     public static PrintWriter bw;
 
-    public MyThread(Socket ss) throws IOException {
+    public MyThread(Socket ss) {
         this.ss = ss;
     }
 
@@ -45,7 +45,6 @@ public class MyThread implements Runnable {
                     break;
             }
         }
-
     }
 
     public static void get(String directory) throws IOException {
@@ -56,62 +55,44 @@ public class MyThread implements Runnable {
         System.out.println(directory);
         if (new File(directory).exists()) {
             //System.out.println(directory);
-            if (directory.split("\\.")[1].equals("html"))
-                sendpage(directory);
-            else
-                sendObj(directory);
-
+            sendObj("200 OK", directory);
         } else {
             fileNotFoundError();
         }
-
-
     }
 
-    public static void sendObj(String directory) throws IOException {
+    public static void sendObj(String resp, String directory) throws IOException {
         byte[] data = Files.readAllBytes(new File(directory).toPath());
-        bw.println("HTTP/1.1 200 OK");
-        bw.println("Content length: 0" + data.length);
-        bw.println("Content Type: image/" + directory.split("\\.")[1]);
-        bw.println("Keep-Alive: timeout=5, max=100");
-        bw.println("Connection: Keep-Alive");
-        bw.println();
+        String contenttype = "";
+        String extension = "";
+        try {
+            extension = directory.split("\\.")[1];
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        switch (extension) {
+            case "html":
+                contenttype = "text/html";
+                break;
+            default:
+                contenttype = "image/" + extension;
+                break;
+        }
 
-        OutputStream os = ss.getOutputStream();
-        os.write(data);
+        byte[] header = ("HTTP/1.1 " + resp + "\n" +
+                "Keep-Alive: timeout=50, max=100\n" +
+                "Connection: Keep-Alive\n" + "Content-Type: " + contenttype + "\n" +
+                "Content length: " + data.length + "\n" +
+                "\n").getBytes();
 
+        byte content[] = new byte[header.length + data.length];
+        System.arraycopy(header, 0, content, 0, header.length);
+        System.arraycopy(data, 0, content, header.length, data.length);
+        ss.getOutputStream().write(content);
     }
 
-    public static void sendpage(String directory) throws IOException {
-        String content = "";
-        BufferedReader fr = new BufferedReader(new FileReader(directory));
-        String riga;
-        while ((riga = fr.readLine()) != null)
-            content += riga;
-
-        bw.println("HTTP/1.1 200 OK");
-        bw.println("Content length: " + content.getBytes().length);
-        bw.println("Content Type: text/html");
-        bw.println("Keep-Alive: timeout=5, max=100");
-        bw.println("Connection: Keep-Alive");
-        bw.println();
-        bw.println(content);
-    }
 
     public static void fileNotFoundError() throws IOException {
-        String content = "";
-        BufferedReader fr = new BufferedReader(new FileReader("www/error.html"));
-        String riga;
-        while ((riga = fr.readLine()) != null)
-            content += riga;
-
-        bw.println("HTTP/1.1 404 Not Found");
-        bw.println("Content length: " + content.getBytes().length);
-        bw.println("Content Type: text/html");
-        bw.println("Keep-Alive: timeout=5, max=100");
-        bw.println("Connection: Keep-Alive");
-        bw.println();
-        bw.println(content);
+        sendObj("404 Not Found", "www/error.html");
     }
 
 }
